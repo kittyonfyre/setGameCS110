@@ -93,6 +93,8 @@ public class Board
    public void replaceCard(SetCard card, int row, int col)
    {
       BoardSquare bSquareTemp = new BoardSquare(card, row, col);
+      board.get(row);
+      board.get(col);
       board.get(row).set(col, bSquareTemp);
    }
    

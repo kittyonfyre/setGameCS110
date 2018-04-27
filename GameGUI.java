@@ -32,6 +32,8 @@ import javafx.stage.Stage;
 
 public class GameGUI extends Application
 {
+   private GridPane cardGrid;
+   
    public static void main(String [] args) {
       launch(args);
    }
@@ -48,7 +50,7 @@ public class GameGUI extends Application
       primaryStage.setTitle("Game of Set");
       BorderPane entireBoardPane = new BorderPane();
       
-      GridPane cardGrid = new GridPane();
+      cardGrid = new GridPane();
       cardGrid.setAlignment(Pos.CENTER);
       cardGrid.setHgap(10);
       cardGrid.setVgap(10);
@@ -61,7 +63,7 @@ public class GameGUI extends Application
       entireBoardPane.setLeft(leftSidePanelVBox);
       entireBoardPane.setCenter(cardGrid);
       
-      drawCards(cardGrid);
+      drawCards();
       
       //generic scene stuff that needs to happen
       Scene scene = new Scene(entireBoardPane);
@@ -69,7 +71,7 @@ public class GameGUI extends Application
       primaryStage.show();
    }
    
-   public GridPane drawCards(GridPane cardGrid)
+   public GridPane drawCards()
    {
       cardGrid.getChildren().clear();
       
@@ -162,8 +164,7 @@ public class GameGUI extends Application
       //this is where there be dragons.
       if (!Dragons.g.getBoard().getBoardSquare(gridRow, gridCol).getSelected())
       {
-         Dragons.g.getBoard().getBoardSquare(gridRow, gridCol).setSelected(true);
-         cardVBox.setStyle("-fx-background-color: darkblue;" + "-fx-border-width: 3;" + "-fx-border-color: #000;" + "-fx-border-style: solid;");
+         cardVBox.setStyle("-fx-background-color: darkgray;" + "-fx-border-width: 3;" + "-fx-border-color: #000;" + "-fx-border-style: solid;");
          Dragons.g.addToSelected(gridRow, gridCol);
       }
       
@@ -176,6 +177,7 @@ public class GameGUI extends Application
       if (Dragons.g.numSelected()==3)
       {
          Dragons.g.testSelected();
+         drawCards();
       }
    }
    
