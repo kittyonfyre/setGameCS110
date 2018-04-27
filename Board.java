@@ -4,7 +4,7 @@
 import java.util.ArrayList;
 public class Board
 {
-   ArrayList<ArrayList<BoardSquare>> board = new ArrayList<ArrayList<BoardSquare>>(2);
+   ArrayList<ArrayList<BoardSquare>> board = new ArrayList<ArrayList<BoardSquare>>();
    public final static int ROW_COUNT = 3;
    int colCount = 0;
    int rowCount = 0;

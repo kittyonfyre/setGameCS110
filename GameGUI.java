@@ -38,13 +38,30 @@ public class GameGUI extends Application
    @Override
    public void start(Stage primaryStage)
    {
-      Game g = new Game();
+      //yeah... listen, I understand that this is an absolute terrible design choice.
+      //But I am out of time. So I do what I must. I did this because I couldn't access
+      //the BoardSquare class from handleSelectCard.
+      
+      //***desperate hack, here be dragons***
+      Dragons.g = new Game();
+      
       primaryStage.setTitle("Game of Set");
       BorderPane entireBoardPane = new BorderPane();
       
+      GridPane cardGrid = new GridPane();
+      cardGrid.setAlignment(Pos.CENTER);
+      cardGrid.setHgap(10);
+      cardGrid.setVgap(10);
+      cardGrid.setPadding(new Insets(25, 25, 25, 25));
+      
+      VBox leftSidePanelVBox = new VBox();
+      leftSidePanelVBox = leftSidePanel(Dragons.g.numCardsLeft());
+      
       //sets info/buttons to the left side, and card grids to the right.
-      entireBoardPane.setLeft(leftSidePanel(g.numCardsLeft()));
-      entireBoardPane.setCenter(drawCardGrid(g));
+      entireBoardPane.setLeft(leftSidePanelVBox);
+      entireBoardPane.setCenter(cardGrid);
+      
+      drawCards(cardGrid);
       
       //generic scene stuff that needs to happen
       Scene scene = new Scene(entireBoardPane);
@@ -52,15 +69,11 @@ public class GameGUI extends Application
       primaryStage.show();
    }
    
-   public GridPane drawCardGrid(Game g)
+   public GridPane drawCards(GridPane cardGrid)
    {
-      GridPane cardGrid = new GridPane();
-      cardGrid.setAlignment(Pos.CENTER);
-      cardGrid.setHgap(10);
-      cardGrid.setVgap(10);
-      cardGrid.setPadding(new Insets(25, 25, 25, 25));
+      cardGrid.getChildren().clear();
       
-      Board b = g.getBoard();
+      Board b = Dragons.g.getBoard();
       for (int r = 0; r < b.numRows(); r++)
       {
          for (int c = 0; c < b.numCols(); c++)
@@ -135,7 +148,7 @@ public class GameGUI extends Application
          cardVBox.getChildren().add(shape);
       }
       cardVBox.setAlignment(Pos.CENTER);
-      cardVBox.setStyle("-fx-background-color: #fff;" + "-fx-border-width: 4;" + "-fx-border-color: #000;" + "-fx-border-style: solid;");
+      cardVBox.setStyle("-fx-background-color: lightgray;" + "-fx-border-width: 4;" + "-fx-border-color: #000;" + "-fx-border-style: solid;");
       cardVBox.setPadding(new Insets(5));
       cardVBox.setMinSize(145, 220);
       return cardVBox;
@@ -143,7 +156,27 @@ public class GameGUI extends Application
    private void handleSelectCardPane(MouseEvent e)
    {
       VBox cardVBox = (VBox) e.getSource();
-      VBox.getChildren()
+      int gridCol = GridPane.getColumnIndex(cardVBox).intValue();
+      int gridRow = GridPane.getRowIndex(cardVBox).intValue();
+      //this is why i "needed" to (essentially) set Game g to a global var.
+      //this is where there be dragons.
+      if (!Dragons.g.getBoard().getBoardSquare(gridRow, gridCol).getSelected())
+      {
+         Dragons.g.getBoard().getBoardSquare(gridRow, gridCol).setSelected(true);
+         cardVBox.setStyle("-fx-background-color: darkblue;" + "-fx-border-width: 3;" + "-fx-border-color: #000;" + "-fx-border-style: solid;");
+         Dragons.g.addToSelected(gridRow, gridCol);
+      }
+      
+      else if (Dragons.g.getBoard().getBoardSquare(gridRow, gridCol).getSelected())
+      {
+         cardVBox.setStyle("-fx-background-color: lightgray;" + "-fx-border-width: 4;" + "-fx-border-color: #000;" + "-fx-border-style: solid;");
+         Dragons.g.removeSelected(gridRow, gridCol);
+      }
+      
+      if (Dragons.g.numSelected()==3)
+      {
+         Dragons.g.testSelected();
+      }
    }
    
    //createCurve will create and return a curve for use on the cards
@@ -169,6 +202,7 @@ public class GameGUI extends Application
       if (fillType == 1)
       {
          curve.setStrokeWidth(20);
+         //if you dont think this dropshadow stuff is genius you're a peroni.
          DropShadow curveOutline = new DropShadow(BlurType.GAUSSIAN, chosenColor, 5 /*radius*/, Double.MAX_VALUE/*spread*/, 0/*offsetx*/, 0/*offsety*/);
          curve.setStroke(hatchColorize(chosenColor));
          curve.setEffect(curveOutline);
@@ -177,6 +211,7 @@ public class GameGUI extends Application
       {
          curve.setStrokeWidth(20);
          curve.setStroke(Color.WHITE);
+         //if you dont think this dropshadow stuff is genius you're a peroni.
          DropShadow curveOutline = new DropShadow(BlurType.GAUSSIAN, chosenColor, 5 /*radius*/, Double.MAX_VALUE/*spread*/, 0/*offsetx*/, 0/*offsety*/);
          curve.setEffect(curveOutline);
       }
