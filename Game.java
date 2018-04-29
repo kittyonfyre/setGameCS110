@@ -7,7 +7,8 @@ public class Game
    //init vars
    private SetDeck d;
    private Board b;
-   private ArrayList<BoardSquare> selected;
+   private BoardSquare[] selected;
+   private int numSelected;
    
    /**
    The Default constructor creates a deck, shuffles it, and makes the board out of it.
@@ -17,7 +18,7 @@ public class Game
       d = new SetDeck();
       d.shuffle();
       b = new Board(d);
-      this.selected = new ArrayList<>(3);
+      selected = new BoardSquare[10];
    }
    
    /**
@@ -37,17 +38,18 @@ public class Game
    {
       BoardSquare bSquare = b.getBoardSquare(row, col);
       bSquare.setSelected(true);
-      selected.add(bSquare);
+      numSelected++;
+      selected[numSelected] = bSquare;
    }
    
    /**
    getSelected will return the BoardSquares with selected == true
    @returns ArrayList<BoardSquare> ArrayList containing the selected boardsquares
-   */
-   public ArrayList<BoardSquare> getSelected()
+   *//*
+   public BoardSquare[] getSelected()
    {
       return selected;
-   }
+   }*/
    
    /**
    numSelected will search through each row and column for the number of selected BoardSquares
@@ -55,18 +57,7 @@ public class Game
    */
    public int numSelected()
    {
-      int numberSelected = 0;
-      for (int c = 0; c < b.numCols(); c++)
-      {
-         for (int r = 0; r < b.numRows(); r++)
-         {
-            if (b.getBoardSquare(r,c).getSelected())
-            {
-               numberSelected++;
-            }
-         }
-      }
-      return numberSelected;
+      return numSelected;
    }
    
    /**
@@ -93,33 +84,17 @@ public class Game
    */
    public void testSelected()
    {
-      BoardSquare[] selectedBoardSquaresArray = new BoardSquare[3];
-      int numSelected = 0;
-      for (int c = 0; c < b.numCols(); c++)
+      if (SetCard.shapeSet(selected[0].getCard(), selected[1].getCard(), selected[2].getCard()))
       {
-         for (int r = 0; r < b.numRows(); r++)
-         {
-            if (b.getBoardSquare(r,c).getSelected())
-            {
-               selectedBoardSquaresArray[numSelected] = b.getBoardSquare(r,c);
-               numSelected++;
-            }
-         }
-      }
-      BoardSquare card1 = selectedBoardSquaresArray[0];
-      BoardSquare card2 = selectedBoardSquaresArray[1];
-      BoardSquare card3 = selectedBoardSquaresArray[2];
-      if (SetCard.shapeSet(card1.getCard(), card2.getCard(), card3.getCard()))
-      {
-         b.replaceCard(d.getTopCard(), card1.getRow(), card1.getCol());
-         b.replaceCard(d.getTopCard(), card2.getRow(), card2.getCol());
-         b.replaceCard(d.getTopCard(), card3.getRow(), card3.getCol());
+         b.replaceCard(d.getTopCard(), selected[0].getRow(), selected[0].getCol());
+         b.replaceCard(d.getTopCard(), selected[1].getRow(), selected[1].getCol());
+         b.replaceCard(d.getTopCard(), selected[2].getRow(), selected[2].getCol());
       }
       else
       {
-         card1.setSelected(false);
-         card2.setSelected(false);
-         card3.setSelected(false);
+         selected[0].setSelected(false);
+         selected[1].setSelected(false);
+         selected[2].setSelected(false);
       }
    }
    
