@@ -17,6 +17,7 @@ public class Game
       d = new SetDeck();
       d.shuffle();
       b = new Board(d);
+      this.selected = new ArrayList<>(3);
    }
    
    /**
