@@ -87,8 +87,8 @@ public class SetDeck
    numCardsLeft returns the number of cards in the deck as a string
    @returns count Number of cards left
    */
-   public String numCardsLeft()
+   public int numCardsLeft()
    {
-      return Integer.toString(count);
+      return count;
    }
 }

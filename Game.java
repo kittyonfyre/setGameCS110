@@ -7,6 +7,7 @@ public class Game
    //init vars
    private SetDeck d;
    private Board b;
+   private ArrayList<BoardSquare> selected;
    
    /**
    The Default constructor creates a deck, shuffles it, and makes the board out of it.
@@ -33,7 +34,9 @@ public class Game
    */
    public void addToSelected(int row, int col)
    {
-      b.getBoardSquare(row, col).setSelected(true);
+      BoardSquare bSquare = b.getBoardSquare(row, col);
+      bSquare.setSelected(true);
+      selected.add(bSquare);
    }
    
    /**
@@ -42,17 +45,6 @@ public class Game
    */
    public ArrayList<BoardSquare> getSelected()
    {
-      ArrayList<BoardSquare> selected = new ArrayList<BoardSquare>();
-      for (int c = 0; c < b.numCols(); c++)
-      {
-         for (int r = 0; r < b.numRows(); r++)
-         {
-            if (b.getBoardSquare(r,c).getSelected())
-            {
-               selected.add(b.getBoardSquare(r,c));
-            }
-         }
-      }
       return selected;
    }
    
@@ -134,7 +126,7 @@ public class Game
    numCardsLeft returns the number of cards in the deck as a string
    @returns count Number of cards left
    */
-   public String numCardsLeft()
+   public int numCardsLeft()
    {
       return d.numCardsLeft();
    }

@@ -9,26 +9,19 @@ public class Board
    int colCount = 0;
    int rowCount = 0;
    
-   /*
-   The Default constructor will populate a 3x4 grid with cards from the SetDeck class.
-   */
-   public Board(SetDeck d)
+   //The Default constructor will populate a 3x4 grid with cards from the SetDeck class.
+   public Board(SetDeck deck)
    {
-      //first populate the board with 3 arraylists that will act as each row.
-      for (int i = 0; i < ROW_COUNT; i++)
+      board = new ArrayList<>(3);
+      for (int row = 0; row < ROW_COUNT; row++)
       {
-         board.add(new ArrayList<BoardSquare>(3));
-      }
-      
-      //now populate each of those ArrayLists (rows) with BoardSquares, which are populated from the deck d.
-      for (ArrayList<BoardSquare> boardSquareArray : board)
-      {
-         for (int i = 0; i < 4; i++)
+         ArrayList<BoardSquare> thisRow = new ArrayList<>(4);
+         for (int col = 0; col < 4; col++)
          {
-            boardSquareArray.add(new BoardSquare(d.getTopCard(), colCount, rowCount));
-            colCount++;
-            rowCount++;
+            BoardSquare bSquare = new BoardSquare(deck.getTopCard(), row, col);
+            thisRow.add(bSquare);
          }
+         board.add(thisRow);
       }
    }
    

@@ -47,6 +47,7 @@ public class GameGUI extends Application
    {  
       primaryStage.setTitle("Game of Set");
       entireWindow = new BorderPane();
+      g = new Game();
       
       cardGrid = new GridPane();
       cardGrid.setAlignment(Pos.CENTER);
@@ -66,7 +67,7 @@ public class GameGUI extends Application
       cardsRemainingCounter.getChildren().add(cardsText);
       
       //number of cards left itself
-      cardCount = new Text(g.numCardsLeft());
+      cardCount = new Text(Integer.toString(g.numCardsLeft()));
       cardsRemainingCounter.getChildren().add(cardCount);
       
       //buttons that will be added to the left side panel
@@ -114,12 +115,12 @@ public class GameGUI extends Application
    //handles add3 button
    private void handleAdd3(ActionEvent e)
    {
-      int cardsLeft = Integer.parseInt(g.numCardsLeft());
+      int cardsLeft = g.numCardsLeft();
       if (cardGrid.getChildren().size() < 18 && cardsLeft >= 3)
       {
          g.add3();
          this.drawCards();
-         cardCount.setText(g.numCardsLeft());
+         cardCount.setText(Integer.toString(g.numCardsLeft()));
       }
     }
    
@@ -134,7 +135,7 @@ public class GameGUI extends Application
    {
       g = new Game();
       this.drawCards();
-      cardCount.setText(g.numCardsLeft());
+      cardCount.setText(Integer.toString(g.numCardsLeft()));
    }
    
    //handles when a card is clicked on
@@ -157,6 +158,6 @@ public class GameGUI extends Application
          g.testSelected();
          drawCards();
       }
-      cardCount.setText(g.numCardsLeft());
+      cardCount.setText(Integer.toString(g.numCardsLeft()));
    }
 }
