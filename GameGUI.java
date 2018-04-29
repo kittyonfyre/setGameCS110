@@ -32,23 +32,21 @@ import javafx.stage.Stage;
 
 public class GameGUI extends Application
 {
+   //init class vars
+   private Game g;
    private GridPane cardGrid;
+   private BorderPane entireWindow;
+   private VBox leftSidePanel;
+   private Text cardCount;
    
    public static void main(String [] args) {
       launch(args);
    }
    @Override
    public void start(Stage primaryStage)
-   {
-      //yeah... listen, I understand that this is an absolute terrible design choice.
-      //But I am out of time. So I do what I must. I did this because I couldn't access
-      //the BoardSquare class from handleSelectCard.
-      
-      //***desperate hack, here be dragons***
-      Dragons.g = new Game();
-      
+   {  
       primaryStage.setTitle("Game of Set");
-      BorderPane entireBoardPane = new BorderPane();
+      entireWindow = new BorderPane();
       
       cardGrid = new GridPane();
       cardGrid.setAlignment(Pos.CENTER);
@@ -56,43 +54,10 @@ public class GameGUI extends Application
       cardGrid.setVgap(10);
       cardGrid.setPadding(new Insets(25, 25, 25, 25));
       
-      VBox leftSidePanelVBox = new VBox();
-      leftSidePanelVBox = leftSidePanel(Dragons.g.numCardsLeft());
-      
-      //sets info/buttons to the left side, and card grids to the right.
-      entireBoardPane.setLeft(leftSidePanelVBox);
-      entireBoardPane.setCenter(cardGrid);
-      
-      drawCards();
-      
-      //generic scene stuff that needs to happen
-      Scene scene = new Scene(entireBoardPane);
-      primaryStage.setScene(scene);
-      primaryStage.show();
-   }
-   
-   public GridPane drawCards()
-   {
-      cardGrid.getChildren().clear();
-      
-      Board b = Dragons.g.getBoard();
-      for (int r = 0; r < b.numRows(); r++)
-      {
-         for (int c = 0; c < b.numCols(); c++)
-         {
-            VBox cardVBox = cardPaneCreator(b.getBoardSquare(r, c));
-            cardVBox.setOnMouseClicked(this::handleSelectCardPane);
-            cardGrid.add(cardVBox, c, r);
-         }
-      }
-      return cardGrid;
-   }
-   
-   public VBox leftSidePanel(String numCardsLeft)
-   {
-      VBox leftSidePanelVBox = new VBox();
-      leftSidePanelVBox.setPadding(new Insets(10));
-      leftSidePanelVBox.setSpacing(8);
+      //adds a panel on the left side with buttons and a card remaining counter
+      leftSidePanel = new VBox();
+      leftSidePanel.setPadding(new Insets(10));
+      leftSidePanel.setSpacing(8);
       
       //cards remaining counter: text plus the counter
       HBox cardsRemainingCounter = new HBox();
@@ -101,175 +66,97 @@ public class GameGUI extends Application
       cardsRemainingCounter.getChildren().add(cardsText);
       
       //number of cards left itself
-      Text cardCount = new Text(numCardsLeft);
+      cardCount = new Text(g.numCardsLeft());
       cardsRemainingCounter.getChildren().add(cardCount);
       
-      //add the HBox that holds cards remaining to the left side info
-      leftSidePanelVBox.getChildren().add(cardsRemainingCounter);
-      return leftSidePanelVBox;
+      //buttons that will be added to the left side panel
+      Button quitButton = new Button("Quit");
+      Button newGameButton = new Button("New Game");
+      Button add3Button = new Button("Add 3 Cards");
+
+      add3Button.setOnAction(this::handleAdd3);
+      newGameButton.setOnAction(this::handleNewGame);
+      quitButton.setOnAction(this::handleQuit);
+      
+      leftSidePanel.getChildren().addAll(cardsRemainingCounter, quitButton, newGameButton, add3Button);
+      
+      //sets info/buttons to the left side, and card grids to the right.
+      entireWindow.setLeft(leftSidePanel);
+      entireWindow.setCenter(cardGrid);
+      
+      drawCards();
+      
+      //generic scene stuff that needs to happen
+      Scene scene = new Scene(entireWindow);
+      primaryStage.setScene(scene);
+      primaryStage.show();
+   }
+
+   //drawCards will draw or redraw the cardGrid, which contains all the playing cards.
+   public void drawCards()
+   {
+      //clears current board
+      cardGrid.getChildren().clear();
+      
+      //draws the card grid
+      Board b = g.getBoard();
+      for (int r = 0; r < b.numRows(); r++)
+      {
+         for (int c = 0; c < b.numCols(); c++)
+         {
+            VBoxCardGUI cardVBox = new VBoxCardGUI(b.getBoardSquare(r, c));
+            cardVBox.setOnMouseClicked(this::handleSelectCardPane);
+            cardGrid.add(cardVBox, c, r);
+         }
+      }
    }
    
-   public VBox cardPaneCreator(BoardSquare bs)
+   //handles add3 button
+   private void handleAdd3(ActionEvent e)
    {
-      String[] boardSquareCardData = bs.getCard().toString().split("_");
-      //shape number color shade
-      VBox cardVBox = new VBox(10);
-      Color cardColor;
-      int cardFill, shapeNumber;
-      Node shape;
-      switch (boardSquareCardData[2])
+      int cardsLeft = Integer.parseInt(g.numCardsLeft());
+      if (cardGrid.getChildren().size() < 18 && cardsLeft >= 3)
       {
-         case "RED":       cardColor = Color.FIREBRICK; break;
-         case "BLUE":      cardColor = Color.DARKCYAN; break;
-         case "GREEN":     cardColor = Color.DARKGREEN; break;
-         default:          cardColor = Color.BLACK; break;
+         g.add3();
+         this.drawCards();
+         cardCount.setText(g.numCardsLeft());
       }
-      switch (boardSquareCardData[3])
-      {
-         case "STRIPED":   cardFill = 1; break;
-         case "SOLID":     cardFill = 0; break;
-         case "OUTLINED":  cardFill = 2; break;
-         default:          cardFill = 0; break;
-      }
-      switch (boardSquareCardData[1])
-      {
-         case "ONE":       shapeNumber = 1; break;
-         case "TWO":       shapeNumber = 2; break;
-         case "THREE":     shapeNumber = 3; break;
-         default:          shapeNumber = 1; break;
-      }
-      for (int i = 1; i <= shapeNumber; i++)
-      {
-         switch (boardSquareCardData[0])
-         {
-            case "OVALS":     shape = createEllipse(cardColor, cardFill); break;
-            case "DIAMONDS":  shape = createDiamond(cardColor, cardFill); break;
-            case "SQUIGGLES": shape = createCurve(cardColor,   cardFill); break;
-            default:          shape = createEllipse(cardColor, cardFill); break;
-         }
-         cardVBox.getChildren().add(shape);
-      }
-      cardVBox.setAlignment(Pos.CENTER);
-      cardVBox.setStyle("-fx-background-color: lightgray;" + "-fx-border-width: 4;" + "-fx-border-color: #000;" + "-fx-border-style: solid;");
-      cardVBox.setPadding(new Insets(5));
-      cardVBox.setMinSize(145, 220);
-      return cardVBox;
+    }
+   
+   //handles quitting the game
+   private void handleQuit(ActionEvent e)
+   {
+      Platform.exit();
    }
+   
+   //handles starting a new game
+   private void handleNewGame(ActionEvent e)
+   {
+      g = new Game();
+      this.drawCards();
+      cardCount.setText(g.numCardsLeft());
+   }
+   
+   //handles when a card is clicked on
    private void handleSelectCardPane(MouseEvent e)
    {
-      VBox cardVBox = (VBox) e.getSource();
-      int gridCol = GridPane.getColumnIndex(cardVBox).intValue();
-      int gridRow = GridPane.getRowIndex(cardVBox).intValue();
-      //this is why i "needed" to (essentially) set Game g to a global var.
-      //this is where there be dragons.
-      if (!Dragons.g.getBoard().getBoardSquare(gridRow, gridCol).getSelected())
-      {
-         cardVBox.setStyle("-fx-background-color: darkgray;" + "-fx-border-width: 3;" + "-fx-border-color: #000;" + "-fx-border-style: solid;");
-         Dragons.g.addToSelected(gridRow, gridCol);
-      }
-      
-      else if (Dragons.g.getBoard().getBoardSquare(gridRow, gridCol).getSelected())
+      VBoxCardGUI cardVBox = (VBoxCardGUI) e.getSource();
+      if (cardVBox.boardSquare().getSelected())
       {
          cardVBox.setStyle("-fx-background-color: lightgray;" + "-fx-border-width: 4;" + "-fx-border-color: #000;" + "-fx-border-style: solid;");
-         Dragons.g.removeSelected(gridRow, gridCol);
+         g.removeSelected(cardVBox.row(),cardVBox.col());
+      }
+      else if (!cardVBox.boardSquare().getSelected())
+      {
+         cardVBox.setStyle("-fx-background-color: darkgray;" + "-fx-border-width: 3;" + "-fx-border-color: #000;" + "-fx-border-style: solid;");
+         g.addToSelected(cardVBox.row(),cardVBox.col());
       }
       
-      if (Dragons.g.numSelected()==3)
+      if (g.numSelected()==3)
       {
-         Dragons.g.testSelected();
+         g.testSelected();
          drawCards();
       }
-   }
-   
-   //createCurve will create and return a curve for use on the cards
-   public CubicCurve createCurve(Color chosenColor, int fillType)
-   {
-      CubicCurve curve = new CubicCurve();
-      curve.setStartX(0);
-      curve.setStartY(50);
-      curve.setControlX1(50);
-      curve.setControlY1(0);
-      curve.setControlX2(50);
-      curve.setControlY2(100);
-      curve.setEndX(100);
-      curve.setEndY(50);
-      curve.setStrokeWidth(25);
-      curve.setStrokeLineCap(StrokeLineCap.ROUND);
-      curve.setFill(null);
-      //this section determines fill type - solid by default, otherwise it is hatched or hollow
-      if (fillType == 0)
-      {
-         curve.setStroke(chosenColor);
-      }
-      if (fillType == 1)
-      {
-         curve.setStrokeWidth(20);
-         //if you dont think this dropshadow stuff is genius you're a peroni.
-         DropShadow curveOutline = new DropShadow(BlurType.GAUSSIAN, chosenColor, 5 /*radius*/, Double.MAX_VALUE/*spread*/, 0/*offsetx*/, 0/*offsety*/);
-         curve.setStroke(hatchColorize(chosenColor));
-         curve.setEffect(curveOutline);
-      }
-      if (fillType == 2)
-      {
-         curve.setStrokeWidth(20);
-         curve.setStroke(Color.WHITE);
-         //if you dont think this dropshadow stuff is genius you're a peroni.
-         DropShadow curveOutline = new DropShadow(BlurType.GAUSSIAN, chosenColor, 5 /*radius*/, Double.MAX_VALUE/*spread*/, 0/*offsetx*/, 0/*offsety*/);
-         curve.setEffect(curveOutline);
-      }
-      return curve;
-   }
-   
-   //createEllipse will create and return a curve for use on cards
-   public Ellipse createEllipse(Color chosenColor, int fillType)
-   {
-      Ellipse ellipse = new Ellipse(25, 25, 50, 25);
-      ellipse.setFill(chosenColor);
-      ellipse.setStrokeWidth(5);
-      ellipse.setStroke(chosenColor);
-      //this section determines fill type - solid by default, otherwise it is hatched or hollow
-      if (fillType == 1)
-      {
-         ellipse.setFill(hatchColorize(chosenColor));
-      }
-      if (fillType == 2)
-      {
-         ellipse.setFill(null);
-      }
-      return ellipse;
-   }
-   
-   //createDiamond will create and return a curve for use on cards
-   public Polygon createDiamond(Color chosenColor, int fillType)
-   {
-      Polygon diamond = new Polygon();
-      diamond.getPoints().addAll(new Double[]{
-         0.0, 25.0,
-         50.0, 0.0,
-         100.0, 25.0,
-         50.0, 50.0});
-      diamond.setFill(chosenColor);
-      diamond.setStrokeWidth(5);
-      diamond.setStroke(chosenColor);
-      //this section determines fill type - solid by default, otherwise it is hatched or hollow
-      if (fillType == 1)
-      {
-         diamond.setFill(hatchColorize(chosenColor));
-      }
-      if (fillType == 2)
-      {
-         diamond.setFill(null);
-      }
-      return diamond;
-   }
-   
-   //hatchColorize will output a LinearGradient object used to fill in the hatch pattern on the card symbols.
-   //I did this rather than colorize the given hatch.png because it allowed greater control over colors.
-   public LinearGradient hatchColorize(Color hatchColor)
-   {
-      Stop stop1 = new Stop(.4, hatchColor);
-      Stop stop2 = new Stop(.6, Color.WHITE);
-      LinearGradient hatchGradient = new LinearGradient(0, 0, 3, 3, false, CycleMethod.REFLECT, stop1, stop2);
-      return hatchGradient;
+      cardCount.setText(g.numCardsLeft());
    }
 }
